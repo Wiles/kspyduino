@@ -51,8 +51,10 @@ if __name__ == '__main__':
                     if (command == 'set'):
                         if (control == 'throttle'):
                             vessel.control.throttle = float(value)
-                        elif (control == 'stage' and float(value) == 0):
+                        elif (control == 'stage' and value == 'true'):
                             vessel.control.activate_next_stage()
+                        elif (control == 'lights'):
+                            vessel.control.lights = value == 'true'
 
         except Exception as e:
             print(e)

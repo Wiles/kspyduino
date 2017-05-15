@@ -16,7 +16,7 @@
 
 class Control {
  public:
-  virtual double read();
+  virtual String read();
 };
 
 class Pot: public Control {
@@ -26,7 +26,7 @@ class Pot: public Control {
     pinMode(this->pin, INPUT);
   }
 
-  double read() {
+  String read() {
     int pot = analogRead(this->pin);
 
     if (pot <= deadzone) {
@@ -38,7 +38,7 @@ class Pot: public Control {
     if (abs(pot - this->previousReading) >= 2) {
       this->previousReading = pot;
     }
-    return (this->previousReading / 2) / 100.0;
+    return String((this->previousReading / 2) / 100.0);
   }
 
  private:
@@ -55,19 +55,21 @@ class Button: public Control {
     pinMode(this->pin, INPUT_PULLUP);
   }
 
-  double read() {
-    return digitalRead(this->pin);
+  String read() {
+    return digitalRead(this->pin)?"false":"true";
   }
 
  private:
   int pin;
 };
 
-const int buttonPin = A0;
+const int stagePin = A0;
 const int throttlePin = A3;
+const int lightPin = 12;
 
 Pot throttle(throttlePin);
-Button stage(buttonPin);
+Button stage(stagePin);
+Button light(lightPin);
 
 void setup() {
   Serial.begin(9600);
@@ -76,11 +78,11 @@ void setup() {
   digitalWrite(A1, LOW);
   pinMode(A5, OUTPUT);
   digitalWrite(A5, HIGH);
-  pinMode(buttonPin, INPUT);
 }
 
-double prevThrottle = 0;
-double prevStageTrigger = 1;
+String prevThrottle = "";
+String prevStageTrigger = "";
+String prevLight = "";
 
 void loop() {
   if (Serial.available()) {
@@ -90,20 +92,28 @@ void loop() {
       Serial.println(throttle.read());
     }
   } else {
-    double throttleValue = throttle.read();
+    String throttleValue = throttle.read();
 
-    if (throttleValue != prevThrottle) {
+    if (!throttleValue.equals(prevThrottle)) {
       prevThrottle = throttleValue;
       Serial.print("set throttle ");
       Serial.println(throttleValue);
     }
 
-    double stageTrigger = stage.read();
+    String stageTrigger = stage.read();
 
-    if (stageTrigger != prevStageTrigger) {
+    if (!stageTrigger.equals(prevStageTrigger)) {
       prevStageTrigger = stageTrigger;
       Serial.print("set stage ");
       Serial.println(stageTrigger);
+    }
+
+    String lights = light.read();
+
+    if (!lights.equals(prevLight)) {
+      prevLight = lights;
+      Serial.print("set lights ");
+      Serial.println(lights);
     }
   }
 }
